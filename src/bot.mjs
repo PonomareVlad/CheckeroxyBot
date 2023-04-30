@@ -16,6 +16,7 @@ const checkProxy = async (url, signal, testURL = "https://api.ipify.org") => {
         const result = await response.text();
         return fmt`${response.ok ? "✅" : "⚠️"} ${code(result)}`;
     } catch (e) {
+        if (signal.aborted) throw e;
         const error = e.message || e.name;
         if (error.includes("reason: ")) return fmt`⚠️ ${code(error.split("reason: ").pop())}`;
         return fmt`⚠️ ${code(error)}`;
