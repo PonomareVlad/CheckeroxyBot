@@ -1,5 +1,5 @@
 {
-  "name": "grammy-vercel",
+  "name": "checkeroxy-bot",
   "author": "Vladislav Ponomarev <PonomareVlad@users.noreply.github.com> (https://PonomareVlad.ru)",
   "funding": "https://PonomareVlad.ru/donate",
   "license": "MIT",
@@ -9,7 +9,9 @@
     "tunnel": "cloudflared tunnel --url http://localhost:3000"
   },
   "dependencies": {
-    "grammy": "^1.16.0"
+    "grammy": "^1.16.0",
+    "https-proxy-agent": "^5.0.1",
+    "node-fetch": "^3.3.1"
   },
   "engines": {
     "node": "^18.0.0"
