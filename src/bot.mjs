@@ -30,9 +30,9 @@ bot.on("message:text", async ctx => {
         const replyResult = (url, result, index) => {
             return ctx.reply(`[${index}] ${url}\r\n${result}\r\n⏱️ ${Date.now() - time} ms`, options);
         }
+        await ctx.reply(`Checking ${urls.length} proxies...`, options, signal);
         await Promise.all([
             ctx.replyWithChatAction("typing"),
-            ctx.reply(`Checking ${urls.length} proxies...`, options, signal),
             ...urls.map((url, index) => checkProxy(url, signal).then(result => replyResult(url, result, index)))
         ]);
     } catch (e) {
