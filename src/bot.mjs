@@ -1,6 +1,7 @@
 import {Bot} from "grammy";
 import fetch from "node-fetch";
 import HttpsProxyAgent from "https-proxy-agent";
+import {code, fmt, hydrateReply} from "@grammyjs/parse-mode";
 
 export const bot = new Bot(process.env.TELEGRAM_BOT_TOKEN);
 
@@ -12,23 +13,30 @@ const checkProxy = async (url, signal, testURL = "https://api.ipify.org") => {
     try {
         const agent = new HttpsProxyAgent(getURL(url));
         const response = await fetch(testURL, {agent, signal});
-        const ip = await response.text();
-        return `${response.ok ? "✅" : "⚠️"} ${ip}`;
+        const result = await response.text();
+        return fmt`${response.ok ? "✅" : "⚠️"} ${code(result)}`;
     } catch (e) {
         const error = e.message || e.name;
-        if (error.includes("reason: ")) return `⚠️ ${error.split("reason: ").pop()}`;
-        return `⚠️ ${error}`;
+        if (error.includes("reason: ")) return fmt`⚠️ ${code(error.split("reason: ").pop())}`;
+        return fmt`⚠️ ${code(error)}`;
     }
 }
 
-bot.on("message:text", async ctx => {
+bot.use(hydrateReply);
+
+bot.command("start", ctx => {
+    return ctx.replyFmt(fmt`Send proxy URLs in format:\r\n${code(`IP:PORT`)} or ${code(`LOGIN:PASSWORD@IP:PORT`)}`);
+});
+
+bot.on(":text", async ctx => {
     const signal = AbortSignal.timeout(9000);
     try {
         const time = Date.now();
         const urls = getParts(ctx.msg.text);
         const options = {reply_to_message_id: ctx.msg.message_id};
         const replyResult = (url, result, index) => {
-            return ctx.reply(`[${index}] ${url}\r\n${result}\r\n⏱️ ${Date.now() - time} ms`, options);
+            const duration = Date.now() - time;
+            return ctx.replyFmt(fmt`[${code(index)}] ${code(url)}\r\n${result}\r\n⏱️ ${duration} ms`, options);
         }
         await ctx.reply(`Checking ${urls.length} proxies...`, options, signal);
         await Promise.all([
@@ -38,7 +46,7 @@ bot.on("message:text", async ctx => {
     } catch (e) {
         console.error(e);
         if (signal.aborted) return ctx.reply(`⚠️ Other proxies did not respond within 10 seconds`);
-        return ctx.reply(`⚠️ ${e.message || e.name}`);
+        return ctx.replyFmt(fmt`⚠️ ${code(e.message || e.name)}`);
     }
 });
 

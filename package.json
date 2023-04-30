@@ -9,6 +9,7 @@
     "tunnel": "cloudflared tunnel --url http://localhost:3000"
   },
   "dependencies": {
+    "@grammyjs/parse-mode": "^1.7.1",
     "grammy": "^1.16.0",
     "https-proxy-agent": "^5.0.1",
     "node-fetch": "^3.3.1"
