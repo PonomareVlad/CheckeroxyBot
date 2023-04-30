@@ -4,15 +4,16 @@ import HttpsProxyAgent from "https-proxy-agent";
 
 export const bot = new Bot(process.env.TELEGRAM_BOT_TOKEN);
 
+const getURL = text => new URL(text.startsWith("http") ? text : `http://${text}`).href;
+
 const getParts = text => text.replace(/\r\n|\n\r|\n|\r| /g, "\n").split("\n").map(line => line.trim()).filter(Boolean);
 
 const checkProxy = async (url, signal, testURL = "https://api.ipify.org") => {
     try {
-        const targetURL = url.startsWith("http") ? url : `http://${url}`;
-        const agent = new HttpsProxyAgent(targetURL);
+        const agent = new HttpsProxyAgent(getURL(url));
         const response = await fetch(testURL, {agent, signal});
         const ip = await response.text();
-        return `✅ ${ip}`;
+        return `${response.ok ? "✅" : "⚠️"} ${ip}`;
     } catch (e) {
         const error = e.message || e.name;
         if (error.includes("reason: ")) return `⚠️ ${error.split("reason: ").pop()}`;
@@ -21,11 +22,14 @@ const checkProxy = async (url, signal, testURL = "https://api.ipify.org") => {
 }
 
 bot.on("message:text", async ctx => {
+    const signal = AbortSignal.timeout(9000);
     try {
+        const time = Date.now();
         const urls = getParts(ctx.msg.text);
-        const signal = AbortSignal.timeout(9000);
         const options = {reply_to_message_id: ctx.msg.message_id};
-        const replyResult = (url, result, index) => ctx.reply(`[${index}] ${url}\r\n${result}`, options, signal);
+        const replyResult = (url, result, index) => {
+            return ctx.reply(`[${index}] ${url}\r\n${result}\r\n⏱️ ${Date.now() - time} ms`, options);
+        }
         await Promise.all([
             ctx.replyWithChatAction("typing"),
             ctx.reply(`Checking ${urls.length} proxies...`, options, signal),
@@ -33,6 +37,8 @@ bot.on("message:text", async ctx => {
         ]);
     } catch (e) {
         console.error(e);
+        if (signal.aborted) return ctx.reply(`⚠️ Other proxies did not respond within 10 seconds`);
+        return ctx.reply(`⚠️ ${e.message || e.name}`);
     }
 });
 
