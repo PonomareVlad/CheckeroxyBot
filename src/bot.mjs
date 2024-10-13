@@ -35,7 +35,7 @@ bot.command("start", ctx => {
 });
 
 bot.on(":text", async ctx => {
-    const signal = AbortSignal.timeout(9000);
+    const signal = AbortSignal.timeout(58_000);
     try {
         const time = Date.now();
         const urls = getParts(ctx.msg.text);
@@ -51,7 +51,7 @@ bot.on(":text", async ctx => {
         ]);
     } catch (e) {
         console.error(e);
-        if (signal.aborted) return ctx.reply(`⚠️ Other proxies did not respond within 10 seconds`);
+        if (signal.aborted) return ctx.reply(`⚠️ Other proxies did not respond within one minute`);
         return ctx.replyFmt(fmt`⚠️ ${code(e.message || e.name)}`);
     }
 });
