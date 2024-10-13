@@ -1,9 +1,14 @@
 import {Bot} from "grammy";
 import fetch from "node-fetch";
-import HttpsProxyAgent from "https-proxy-agent";
+import {HttpsProxyAgent} from "https-proxy-agent";
 import {code, fmt, hydrateReply} from "@grammyjs/parse-mode";
 
-export const bot = new Bot(process.env.TELEGRAM_BOT_TOKEN);
+export const {
+    TELEGRAM_BOT_TOKEN: token,
+    TELEGRAM_SECRET_TOKEN: secretToken = String(token).split(":").pop()
+} = process.env;
+
+export const bot = new Bot(token);
 
 const getURL = text => new URL(text.startsWith("http") ? text : `http://${text}`).href;
 
@@ -50,5 +55,3 @@ bot.on(":text", async ctx => {
         return ctx.replyFmt(fmt`⚠️ ${code(e.message || e.name)}`);
     }
 });
-
-export default bot;

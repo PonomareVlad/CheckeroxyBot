@@ -1,4 +1,8 @@
-import bot from "../src/bot.mjs";
+import {bot, secretToken} from "../src/bot.mjs";
 import {webhookCallback} from "grammy";
 
-export default webhookCallback(bot, "next-js");
+// Default grammY handler for incoming updates via webhooks
+export default webhookCallback(bot, "http", {
+    timeoutMilliseconds: 59_000,
+    secretToken
+});
