@@ -28,13 +28,15 @@ const checkProxy = async (url, signal, testURL = "https://api.ipify.org") => {
     }
 }
 
-bot.use(hydrateReply);
+const safe = bot.errorBoundary(console.error);
 
-bot.command("start", ctx => {
+safe.use(hydrateReply);
+
+safe.command("start", ctx => {
     return ctx.replyFmt(fmt`Send proxy URLs in format:\r\n${code(`IP:PORT`)} or ${code(`LOGIN:PASSWORD@IP:PORT`)}`);
 });
 
-bot.on(":text", async ctx => {
+safe.on(":text", async ctx => {
     const signal = AbortSignal.timeout(58_000);
     try {
         const time = Date.now();
